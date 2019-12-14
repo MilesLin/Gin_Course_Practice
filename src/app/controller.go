@@ -36,11 +36,17 @@ func registerRoutes() *gin.Engine {
 		"admin": "admin",
 	}))
 	admin.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "admin-overview.html", nil)
+		c.HTML(http.StatusOK, "admin-overview.html",
+			map[string]interface{}{
+				"Employees": employees,
+			})
 	})
-
 	admin.GET("/employees/:id", func(c *gin.Context) {
 		id := c.Param("id")
+		if id == "add" {
+			c.HTML(http.StatusOK, "admin-employee-add.html", nil)
+			return
+		}
 		employee, ok := employees[id]
 
 		if !ok {
