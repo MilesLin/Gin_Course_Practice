@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func main() {
+func registerRoutes() *gin.Engine {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/**/*.html")
 
@@ -18,6 +19,22 @@ func main() {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 
+	r.GET("/employees/:id/vacation", func(c *gin.Context){
+		id := c.Param("id")
+		timesOff, ok := TimesOff[id]
+
+		if !ok{
+			c.String(http.StatusNotFound, "404 - Page Not Found")
+			return
+		}
+
+		c.HTML(http.StatusOK, "vacation-voewview.html",
+			map[string]interface{}{
+				"TimesOff": timesOff,
+			})
+
+	})
+
 	admin := r.Group("/admin")
 
 	admin.GET("/", func(c *gin.Context) {
@@ -27,5 +44,5 @@ func main() {
 	r.Static("/public", "./public")
 	// r.StaticFS("/public", http.Dir("./public"))
 
-	r.Run(":3000")
+	return r
 }

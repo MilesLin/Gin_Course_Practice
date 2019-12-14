@@ -1,2 +1,2 @@
-go build src/main.go
-main
+go build .\src\app
+app
