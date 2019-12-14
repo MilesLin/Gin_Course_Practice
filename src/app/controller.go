@@ -9,14 +9,40 @@ import (
 
 func registerRoutes() *gin.Engine {
 	r := gin.Default()
+	r.Use(loginMiddleware)
+
 	r.LoadHTMLGlob("templates/**/*.html")
-	r.GET("/", func(c *gin.Context) {
+	r.Any("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	r.GET("/login", func(c *gin.Context) {
+	r.Any("/login", func(c *gin.Context) {
+		employeeNumber := c.PostForm("employeeNumber")
+		password := c.PostForm("password")
+		for _, identity := range identities {
+			if identity.employeeNumber == employeeNumber &&
+				identity.password == password {
+					lc := loginCookie{
+						value: employeeNumber,
+						expiration: time.Now().Add(24 * time.Hour),
+						origin: c.Request.RemoteAddr,
+					}
+
+					loginCookies[lc.value] = &lc
+
+					maxAge := lc.expiration.Unix() - time.Now().Unix()
+					c.SetCookie(loginCookieName, lc.value, int(maxAge), "","", false, true)
+
+					c.Redirect(http.StatusTemporaryRedirect, "/")
+
+					return
+				}
+		}
+
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
+
+	
 
 	r.GET("/employees/:id/vacation", func(c *gin.Context) {
 		id := c.Param("id")
